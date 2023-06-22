@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
 
-namespace IntelligentWMSintegration.DAL
+namespace IntelligentWmsIntegration.DAL
 {
     public class HanaDataAccessLayer
     {

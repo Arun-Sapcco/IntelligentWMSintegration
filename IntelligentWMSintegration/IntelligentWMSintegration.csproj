@@ -65,14 +65,27 @@
   <ItemGroup>
     <Compile Include="DAL\HanaDataAccessLayer.cs" />
     <Compile Include="DAL\SqlDataAccessLayer.cs" />
+    <Compile Include="Helpers\AppConfig.cs" />
     <Compile Include="Helpers\Logger.cs" />
     <Compile Include="Models\InventoryCounting.cs" />
     <Compile Include="Models\SapItem.cs" />
+    <Compile Include="Models\SAP\ArCreditMemo.cs" />
+    <Compile Include="Models\SAP\Header.cs" />
+    <Compile Include="Models\SAP\Line.cs" />
+    <Compile Include="Models\SAP\ReturnRequest.cs" />
+    <Compile Include="Models\SAP\SalesOrder.cs" />
     <Compile Include="Models\WmsItem.cs" />
+    <Compile Include="Models\WMS\SAPReturnToCustomerDetails.cs" />
+    <Compile Include="Models\WMS\WMSDeliveryConfirmation.cs" />
+    <Compile Include="Models\WMS\WMSReturnToCustomerInvoice.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SAP\SAPCompany.cs" />
     <Compile Include="SAP\ServiceLayer.cs" />
-    <Compile Include="SAP\SLCredential.cs" />
+    <Compile Include="Services\SalesOrderService.cs" />
+    <Compile Include="Services\SalesReturnRequestService.cs" />
+    <Compile Include="Services\WebArCreditMemoService.cs" />
+    <Compile Include="Services\WebArInvoiceService.cs" />
     <Compile Include="Services\WmsIntegrationService.cs" />
   </ItemGroup>
   <ItemGroup>

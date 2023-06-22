@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace IntelligentWMSintegration.SAP
+namespace IntelligentWmsIntegration.SAP
 {
     public sealed class ServiceLayer
     {

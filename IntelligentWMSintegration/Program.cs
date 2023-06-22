@@ -1,18 +1,18 @@
-﻿using IntelligentWMSintegration.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using IntelligentWmsIntegration.Services;
 
-namespace IntelligentWMSintegration
+namespace IntelligentWmsIntegration
 {
     internal class Program
     {
         static void Main(string[] args)
         {
-            WmsIntegrationService integration = new WmsIntegrationService();
-            integration.Process();
+            //WmsIntegrationService integration = new WmsIntegrationService();
+            //integration.Process();
+
+            SalesOrderService.Export();
+            WebArInvoiceService.Import();
+            SalesReturnRequestService.Export();
+            WebArCreditMemoService.Import();
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace IntelligentWMSintegration.Models
+namespace IntelligentWmsIntegration.Models
 {
     public class WmsItem
     {

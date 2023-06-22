@@ -5,7 +5,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Threading.Tasks;
 
-namespace IntelligentWMSintegration.DAL
+namespace IntelligentWmsIntegration.DAL
 {
     public class SqlDataAccessLayer
     {
@@ -167,6 +167,35 @@ namespace IntelligentWMSintegration.DAL
                 }
             }
         }
+
+        public bool ExecuteNonQueryWithTransaction(List<string> queryList)
+        {
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                connection.Open();
+
+                using (SqlTransaction transaction = connection.BeginTransaction())
+                {
+                    try
+                    {
+                        foreach (var query in queryList)
+                        {
+                            SqlCommand command1 = new SqlCommand(query, connection, transaction);
+                            command1.ExecuteNonQuery();
+                        }
+                        transaction.Commit();
+                        return true;
+                    }
+                    catch (Exception ex)
+                    {
+                        transaction.Rollback();
+                        return false;
+                    }
+                }
+            }
+        }
+
+
 
     }
 }

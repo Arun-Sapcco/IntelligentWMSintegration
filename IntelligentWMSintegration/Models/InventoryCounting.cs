@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace IntelligentWMSintegration.Models
+namespace IntelligentWmsIntegration.Models
 {
     internal class InventoryCounting
     {

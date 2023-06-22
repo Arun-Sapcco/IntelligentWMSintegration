@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace IntelligentWMSintegration.Helpers
+namespace IntelligentWmsIntegration.Helpers
 {
     internal class Logger
     {

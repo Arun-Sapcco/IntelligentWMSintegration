@@ -1,8 +1,7 @@
 ﻿using B1SLayer;
-using IntelligentWMSintegration.DAL;
-using IntelligentWMSintegration.Helpers;
-using IntelligentWMSintegration.Models;
-using IntelligentWMSintegration.SAP;
+using IntelligentWmsIntegration.DAL;
+using IntelligentWmsIntegration.Helpers;
+using IntelligentWmsIntegration.Models;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -10,7 +9,7 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace IntelligentWMSintegration.Services
+namespace IntelligentWmsIntegration.Services
 {
     internal class WmsIntegrationService
     {
@@ -20,7 +19,6 @@ namespace IntelligentWMSintegration.Services
             //string query = $@"select distinct CompanyCode FROM WMSStockTake WHERE CompanyCode = 'PU'";
             string connectionString = ConfigurationManager.ConnectionStrings["SqlConnectionString"].ConnectionString;
             SqlDataAccessLayer dal = new SqlDataAccessLayer(connectionString);
-
 
             DataTable dataTable = dal.ExecuteQuery(query);
 
