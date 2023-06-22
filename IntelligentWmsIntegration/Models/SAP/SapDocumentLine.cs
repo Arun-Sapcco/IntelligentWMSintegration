@@ -1,6 +1,6 @@
 ﻿namespace IntelligentWmsIntegration.Models
 {
-    public class Line
+    public class SapDocumentLine
     {
         public int DocNum { get; set; }
         public int DocEntry { get; set; }

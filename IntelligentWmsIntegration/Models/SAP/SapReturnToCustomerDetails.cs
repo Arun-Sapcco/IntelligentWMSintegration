@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace IntelligentWmsIntegration.Models
+﻿namespace IntelligentWmsIntegration.Models
 {
-   public  class SAPReturnToCustomerDetails
+    public  class SapReturnToCustomerDetails
     {
         public string DocNum { get; set; }
         public string DocEntry { get; set; }

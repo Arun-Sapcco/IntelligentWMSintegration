@@ -1,6 +1,6 @@
 ﻿namespace IntelligentWmsIntegration.Models
 {
-    public class ArCreditMemo : Header
+    public class SapArCreditMemo : SapDocument
     {
         public string U_CompanyCode { get; set; }
         public string U_OrderType { get; set; }
@@ -15,7 +15,7 @@
         public int BaseType { get; set; }
     }
 
-    public class ArCreditMemoLine: Line
+    public class SapArCreditMemoLine: SapDocumentLine
     {
         public string U_WhsType { get; set; }
         public string U_BaseRef_SO { get; set; }
@@ -24,6 +24,5 @@
         public string U_BaseLineNum { get; set; }
         public string U_BaseCompanyCode { get; set; }
 
-        public int BaseType { get; set; }
     }
 }

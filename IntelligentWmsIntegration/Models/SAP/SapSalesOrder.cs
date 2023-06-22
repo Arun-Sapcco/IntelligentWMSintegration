@@ -1,6 +1,6 @@
 ﻿namespace IntelligentWmsIntegration.Models
 {
-    public class SalesOrder : Header
+    public class SapSalesOrder : SapDocument
     {
         public string U_CompanyCode { get; set; }
         public string U_OrderType { get; set; }
@@ -13,7 +13,7 @@
         public string U_WMSRef { get; set; }
     }
 
-    public class SalesOrderLine : Line
+    public class SapSalesOrderLine : SapDocumentLine
     {
         public string U_WhsType { get; set; }
         public string U_BaseRef_SO { get; set; }

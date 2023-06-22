@@ -39,7 +39,7 @@ namespace IntelligentWmsIntegration.Services
 
                     string HanaConnectionString = Company.HanaConnectionString;
                     HanaDataAccessLayer HanaDataAccessLayer = new HanaDataAccessLayer(HanaConnectionString);
-                    List<SalesOrder> documents = HanaDataAccessLayer.ExecuteQuery<List<SalesOrder>>(query);
+                    List<SapSalesOrder> documents = HanaDataAccessLayer.ExecuteQuery<List<SapSalesOrder>>(query);
 
                     foreach (var header in documents)
                     {
@@ -130,7 +130,7 @@ namespace IntelligentWmsIntegration.Services
                               + "INNER JOIN OITM T2 ON T1.\"ItemCode\" = T2.\"ItemCode\" "
                               + $"Where T1.\"U_CompanyCode\" = '{header.U_CompanyCode}' and T1.\"DocEntry\" = '{header.DocEntry}' AND T1.\"WhsCode\"='Web' and T0.\"DocStatus\"='O'";
 
-                        List<SalesOrderLine> lines = HanaDataAccessLayer.ExecuteQuery<List<SalesOrderLine>>(query);
+                        List<SapSalesOrderLine> lines = HanaDataAccessLayer.ExecuteQuery<List<SapSalesOrderLine>>(query);
 
                         if (lines.Count == 0)
                             continue;

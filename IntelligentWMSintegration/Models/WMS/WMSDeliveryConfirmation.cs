@@ -2,7 +2,7 @@
 
 namespace IntelligentWmsIntegration.Models
 {
-    public class WMSDeliveryConfirmation
+    public class WmsDeliveryConfirmation
     {
         public string CompanyCode { get; set; }
         public string OrderType { get; set; }

@@ -31,7 +31,7 @@ namespace IntelligentWmsIntegration.Services
 
                     string HanaConnectionString = Company.HanaConnectionString;
                     HanaDataAccessLayer HanaDataAccessLayer = new HanaDataAccessLayer(HanaConnectionString);
-                    List<ReturnRequest> documents = HanaDataAccessLayer.ExecuteQuery<List<ReturnRequest>>(query);
+                    List<SapReturnRequest> documents = HanaDataAccessLayer.ExecuteQuery<List<SapReturnRequest>>(query);
 
                     foreach (var header in documents)
                     {
@@ -98,7 +98,7 @@ namespace IntelligentWmsIntegration.Services
                               + $"and  T1.\"WhsCode\" ='Web' AND T0.\"DocEntry\" = {header.DocEntry} AND T0.\"U_CompanyCode\" = '{header.U_CompanyCode}' "
                               + "ORDER BY T0.\"DocDate\" desc";
 
-                        List<SAPReturnToCustomerDetails> lines = HanaDataAccessLayer.ExecuteQuery<List<SAPReturnToCustomerDetails>>(query);
+                        List<SapReturnToCustomerDetails> lines = HanaDataAccessLayer.ExecuteQuery<List<SapReturnToCustomerDetails>>(query);
 
                         foreach (var line in lines)
                         {

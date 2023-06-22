@@ -9,9 +9,9 @@ namespace IntelligentWmsIntegration
             //WmsIntegrationService integration = new WmsIntegrationService();
             //integration.Process();
 
-            SalesOrderService.Export();
+            //SalesOrderService.Export();
             WebArInvoiceService.Import();
-            SalesReturnRequestService.Export();
+            //SalesReturnRequestService.Export();
             WebArCreditMemoService.Import();
         }
     }

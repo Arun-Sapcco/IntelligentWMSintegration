@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace IntelligentWmsIntegration.Models
 {
-    public class WMSReturnToCustomerInvoice
+    public class WmsReturnToCustomerInvoice
     {
         public string CompanyCode { get; set; }
         public string WMSRef { get; set; }
