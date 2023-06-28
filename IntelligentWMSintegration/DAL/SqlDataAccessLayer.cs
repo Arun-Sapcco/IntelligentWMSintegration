@@ -196,6 +196,31 @@ namespace IntelligentWmsIntegration.DAL
         }
 
 
+        public async Task<bool> ExecuteNonQueryWithTransactionAsync(List<string> queryList)
+        {
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
 
+                using (SqlTransaction transaction = connection.BeginTransaction())
+                {
+                    try
+                    {
+                        foreach (var query in queryList)
+                        {
+                            SqlCommand command1 = new SqlCommand(query, connection, transaction);
+                            await command1.ExecuteNonQueryAsync();
+                        }
+                        transaction.Commit();
+                        return true;
+                    }
+                    catch (Exception ex)
+                    {
+                        transaction.Rollback();
+                        return false;
+                    }
+                }
+            }
+        }
     }
 }

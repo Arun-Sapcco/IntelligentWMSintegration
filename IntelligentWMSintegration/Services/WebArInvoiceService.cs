@@ -3,15 +3,17 @@ using IntelligentWmsIntegration.DAL;
 using IntelligentWmsIntegration.Helpers;
 using IntelligentWmsIntegration.Models;
 using IntelligentWmsIntegration.Models.ServiceLayer;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace IntelligentWmsIntegration.Services
 {
     public class WebArInvoiceService
     {
-        public async static void Import()
+        public async static Task Import()
         {
             Logger.WriteLog($"A/R Invoice Import starts.");
             foreach (var Company in AppConfig.CompanyList)
@@ -32,11 +34,13 @@ namespace IntelligentWmsIntegration.Services
 
                     query = "select * " +
                             "from [dbo].[WMSDeliveryConfirmation] "
-                          + $"where isprocessed IS NULL and CompanyCode = '{Company.CompanyDB.Split('_').First()}' "
+                          + $"where isprocessed = 'Y' and CompanyCode = '{Company.CompanyDB.Split('_').First()}' "
                           + "and BaseDocumentNumber IS NOT NULL and BaseDocumentEntry IS NOT NULL and BaseItemRowLineNum IS NOT NULL "
-                          + $"and Warehouse = 'Web' AND InventoryQuantity > 0 and CompanyCode = 'PU' ";
-                    //+ $"and BaseDocumentEntry ='27322'"
-                    //+ $"and BaseDocumentNumber ='1019206'";
+                          + $"and Warehouse = 'Web' AND InventoryQuantity > 0 and CompanyCode = 'PU' "
+                    //+ $"and BaseDocumentEntry ='47791'"
+                    //+ $"and BaseDocumentNumber ='1036349'"
+                    + $" AND Text = 'N'";
+
 
                     string wmsConnectionString = AppConfig.WmsConnectionString;
                     SqlDataAccessLayer dac = new SqlDataAccessLayer(wmsConnectionString);
@@ -59,7 +63,7 @@ namespace IntelligentWmsIntegration.Services
 
                             Logger.WriteLog($"Processing Delivery with Sales Order DocNum: {baseDocNum}");
 
-                            query = $"SELECT T0.\"CardCode\", T0.\"CardName\", T0.\"CntctCode\", T0.\"DocCur\",T0.\"DocRate\",T0.\"OwnerCode\", T0.\"SlpCode\", T0.\"NumAtCard\", T0.\"U_WMSRef\", T0.\"U_OrderType\", T0.\"U_DelFrom\", T0.\"U_CompanyCode\", T0.\"DocDate\",T0.\"ShipToCode\",T0.\"PayToCode\",T0.\"TrnspCode\",T0.\"Comments\" " +
+                            query = $"SELECT T0.\"CardCode\", T0.\"CardName\", IFNULL(T0.\"CntctCode\",0), T0.\"DocCur\",T0.\"DocRate\",T0.\"OwnerCode\", T0.\"SlpCode\", T0.\"NumAtCard\", T0.\"U_WMSRef\", T0.\"U_OrderType\", T0.\"U_DelFrom\", T0.\"U_CompanyCode\", T0.\"DocDate\",T0.\"ShipToCode\",T0.\"PayToCode\",T0.\"TrnspCode\",T0.\"Comments\" " +
                                 $"FROM ORDR T0  " +
                                 $"INNER JOIN RDR1 T1 ON T0.\"DocEntry\" = T1.\"DocEntry\" " +
                                 $"WHERE T0.\"DocStatus\" ='O' and  T1.\"LineStatus\" ='O' " +
@@ -76,7 +80,7 @@ namespace IntelligentWmsIntegration.Services
                                 ShipToCode = sapHeader.ShipToCode,
                                 SalesPersonCode = sapHeader.SlpCode,
                                 NumAtCard = sapHeader.NumAtCard,
-                                DocDate = sapHeader.DocDate,
+                                DocDate = sapHeader.DocDate.ToString("yyyy-MM-dd"),
                                 PayToCode = sapHeader.PayToCode,
                                 TransportationCode = sapHeader.TrnspCode,
                                 Comments = sapHeader.Comments,
@@ -90,8 +94,11 @@ namespace IntelligentWmsIntegration.Services
                             if (!string.IsNullOrEmpty(sapHeader.U_WMSRef))
                                 model.U_WMSRef = sapHeader.U_WMSRef;
 
-                            model.U_OrderType = sapHeader.U_OrderType;
+                            if (!string.IsNullOrEmpty(sapHeader.U_DelFrom))
+                                model.U_DelFrom = sapHeader.U_DelFrom;
 
+                            model.U_OrderType = sapHeader.U_OrderType;
+                            int lineNum = 0;
                             foreach (var deliveryConfirmations in group)
                             {
                                 query = $"SELECT T0.\"DocEntry\", T0.\"BaseLine\",T0.\"LineStatus\",  T0.\"ItemCode\",T0.\"WhsCode\", T0.\"Quantity\", T0.\"Currency\", T0.\"Rate\", T0.\"Price\", T0.\"VatGroup\" FROM RDR1 T0 WHERE T0.\"LineStatus\" ='O' and  T0.\"DocEntry\" ='{baseDocEntry}' and T0.\"LineNum\" = {deliveryConfirmations.BaseItemRowLineNum}";
@@ -101,38 +108,58 @@ namespace IntelligentWmsIntegration.Services
 
                                 ArInvoiceLine line = new ArInvoiceLine()
                                 {
+                                    LineNum = lineNum,
                                     ItemCode = sapLine.ItemCode,
                                     Quantity = deliveryConfirmations.InventoryQuantity,
                                     WarehouseCode = sapLine.WhsCode,
                                     UnitPrice = sapLine.Price,
-                                    TaxCode = sapLine.VatGroup,
+                                    VatGroup = sapLine.VatGroup,
                                     BaseType = 17,
                                     BaseEntry = baseDocEntry,
                                     BaseLine = deliveryConfirmations.BaseItemRowLineNum
                                 };
                                 model.DocumentLines.Add(line);
+                                lineNum++;
                             }
 
-                            //why top 1 ?
-                            query = $"SELECT top 1 T0.\"DocEntry\", T0.\"VatGroup\", T0.\"ExpnsCode\" \"ExpenseCode\", T0.\"LineTotal\" FROM RDR3 T0 WHERE T0.\"DocEntry\" ={baseDocEntry} and  T0.\"LineTotal\" > 0";
-                            List<DocumentAdditionalExpense> dt = HanaDataAccessLayer.ExecuteQuery<List<DocumentAdditionalExpense>>(query);
-                            if (dt != null)
+                            query = $"SELECT T0.\"DocEntry\", T0.\"VatGroup\", T0.\"ExpnsCode\" \"ExpenseCode\", T0.\"LineTotal\" FROM RDR3 T0 WHERE T0.\"DocEntry\" ={baseDocEntry} and  T0.\"LineTotal\" > 0";
+                            List<DocumentAdditionalExpense> expenseList = HanaDataAccessLayer.ExecuteQuery<List<DocumentAdditionalExpense>>(query);
+                            foreach (var expense in expenseList)
                             {
-                                DocumentAdditionalExpense expense = new DocumentAdditionalExpense()
+                                DocumentAdditionalExpense obj = new DocumentAdditionalExpense()
                                 {
-                                    ExpenseCode = Convert.ToInt32(dt.First().ExpenseCode),
-                                    VatGroup= dt.First().LineTotal.ToString(),
-                                    LineTotal = Convert.ToDouble(dt.First().LineTotal)
+                                    ExpenseCode = Convert.ToInt32(expense.ExpenseCode),
+                                    VatGroup = expense.VatGroup.ToString(),
+                                    LineTotal = Convert.ToDouble(expense.LineTotal)
                                 };
-                                model.DocumentAdditionalExpenses.Add(expense);
+                                model.DocumentAdditionalExpenses.Add(obj);
                             }
 
+                            string json = JsonConvert.SerializeObject(model, Formatting.Indented);
                             var serviceLayer = new SLConnection(AppConfig.ServiceLayerUrl, companyName, Company.UserName, Company.Password);
                             var response = await serviceLayer
                                                 .Request("Invoices")
                                                 .PostAsync<ArInvoice>(model);
 
                             Logger.WriteLog($"A/R Invoice created successfully.");
+
+                            query = $@"SELECT TOP 1 CASE WHEN  T0.""DocStatus"" = 'O' THEN 1 ELSE 0 END  FROM ORDR T0 INNER JOIN  RDR1 T1 ON T0.""DocEntry"" = T1.""DocEntry""  WHERE  T1.""LineStatus"" = 'C' and T1.""DocEntry"" = {baseDocEntry} ";
+                            var count = await HanaDataAccessLayer.ExecuteCountQueryAsync(query);
+                            if (count != 0)
+                            {
+                                await serviceLayer
+                                     .Request($"Orders({baseDocEntry})/Close")
+                                     .PostAsync();
+                            }
+
+                            query = "UPDATE [dbo].[WMSDeliveryConfirmation] "
+                                   + "SET Text = 'Y' "
+                                   + $"where isprocessed = 'Y' and CompanyCode = '{Company.CompanyDB.Split('_').First()}' "
+                                   + "and BaseItemRowLineNum IS NOT NULL "
+                                   + $"and Warehouse = 'Web' AND InventoryQuantity > 0 and CompanyCode = 'PU' "
+                                   + $"and BaseDocumentEntry ='{baseDocEntry}'"
+                                   + $"and BaseDocumentNumber ='{baseDocNum}'";
+                            dac.ExecuteNonQuery(query);
                         }
                         catch (Exception ex)
                         {

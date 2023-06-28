@@ -33,8 +33,8 @@ namespace IntelligentWmsIntegration.Services
                           + "T0.\"U_DelFrom\" ='PU' and "
                           + "T0.\"DocStatus\"='O' and "
                           + "T1.\"LineStatus\"='O' AND "
-                          + "T0.U_CTX_STTS = 'P'"
-                          //+ "T0.\"DocNum\"='1016292' "
+                          + "T0.U_CTX_STTS = 'P' "
+                          //+ "AND T0.\"DocNum\"='1034993' "
                           + "Order By T0.\"DocDate\" desc";
 
                     string HanaConnectionString = Company.HanaConnectionString;
@@ -212,11 +212,11 @@ namespace IntelligentWmsIntegration.Services
                         if (isCommitted)
                         {
                             Logger.WriteLog($"Updating flag in Sales Order DocNum: {header.DocNum} in Company Code: {companyName}.");
-                            
+
                             query = "UPDATE ORDR "
                                   + "SET U_CTX_STTS = 'A'"
                                   + $"WHERE \"DocEntry\" = '{header.DocEntry}'";
-                            HanaDataAccessLayer.ExecuteNonQuery(query);
+                            HanaDataAccessLayer.ExecuteNonQueryAsync(query);
                         }
                     }
                 }

@@ -1,4 +1,7 @@
 ﻿using IntelligentWmsIntegration.Services;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace IntelligentWmsIntegration
 {
@@ -6,13 +9,20 @@ namespace IntelligentWmsIntegration
     {
         static void Main(string[] args)
         {
-            //WmsIntegrationService integration = new WmsIntegrationService();
-            //integration.Process();
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+            List<Task> tasks = new List<Task>();
 
             //SalesOrderService.Export();
-            WebArInvoiceService.Import();
-            //SalesReturnRequestService.Export();
-            WebArCreditMemoService.Import();
+
+            //WebArInvoiceService.Import().Wait();
+
+            //await SalesReturnRequestService.Export();
+
+            WebArCreditMemoService.Import().Wait();
+
+            stopwatch.Stop();
+            var time = stopwatch.Elapsed;
         }
     }
 }

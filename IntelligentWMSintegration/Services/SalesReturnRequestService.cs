@@ -4,14 +4,17 @@ using IntelligentWmsIntegration.Models;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
+using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace IntelligentWmsIntegration.Services
 {
     public class SalesReturnRequestService
     {
-        public static void Export()
+        public async static Task Export()
         {
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
             Logger.WriteLog($"Sales Return Request Export starts.");
             foreach (var Company in AppConfig.CompanyList)
             {
@@ -31,7 +34,7 @@ namespace IntelligentWmsIntegration.Services
 
                     string HanaConnectionString = Company.HanaConnectionString;
                     HanaDataAccessLayer HanaDataAccessLayer = new HanaDataAccessLayer(HanaConnectionString);
-                    List<SapReturnRequest> documents = HanaDataAccessLayer.ExecuteQuery<List<SapReturnRequest>>(query);
+                    List<SapReturnRequest> documents = await HanaDataAccessLayer.ExecuteQueryAsync<List<SapReturnRequest>>(query);
 
                     foreach (var header in documents)
                     {
@@ -39,7 +42,7 @@ namespace IntelligentWmsIntegration.Services
 
                         string sqlConnectionString = AppConfig.WmsConnectionString;
                         SqlDataAccessLayer dac = new SqlDataAccessLayer(sqlConnectionString);
-                        DataTable dt = dac.ExecuteQuery(query);
+                        DataTable dt = await dac.ExecuteQueryAsync<DataTable>(query);
                         int count = Convert.ToInt32(dt.Rows[0][0]);
 
                         if (count != 0)
@@ -47,7 +50,7 @@ namespace IntelligentWmsIntegration.Services
                             Logger.WriteLog($"Records already exists.");
                             continue;
                         }
-                        List<string> queryList = new List<string>();
+
                         // Insert header
                         query = "INSERT INTO [dbo].[SAPReturnToCustomerHeader] ("
                               + "[CompanyCode] "
@@ -85,9 +88,10 @@ namespace IntelligentWmsIntegration.Services
                               + $"'2', "
                               + $"'{header.Comments}', "
                               + $"'{header.DocEntry}_{header.U_CompanyCode}' )";
-                            //+ $",'{header.ic}'< ICType1, nvarchar(50),> "
-                            //+ $",'{header}' < ICType2, nvarchar(50),>)";
+                        //+ $",'{header.ic}'< ICType1, nvarchar(50),> "
+                        //+ $",'{header}' < ICType2, nvarchar(50),>)";
 
+                        List<string> queryList = new List<string>();
                         queryList.Add(query);
 
                         query = "SELECT T0.\"DocNum\", T0.\"DocEntry\",T1.\"LineNum\", T1.\"ItemCode\", T1.\"Quantity\",T1.\"unitMsr\", T1.\"InvQty\", T3.\"InvntryUom\", T1.\"Price\", T1.\"WhsCode\", T1.\"FreeTxt\", T1.\"ReturnRsn\", T1.\"BaseType\", T1.\"BaseEntry\", T1.\"BaseLine\", T0.\"Comments\", T0.\"U_IsProcessed\", T1.\"LineStatus\", '' \"UniquePrimaryKey\",T1.\"U_CompanyCode\" "
@@ -98,7 +102,7 @@ namespace IntelligentWmsIntegration.Services
                               + $"and  T1.\"WhsCode\" ='Web' AND T0.\"DocEntry\" = {header.DocEntry} AND T0.\"U_CompanyCode\" = '{header.U_CompanyCode}' "
                               + "ORDER BY T0.\"DocDate\" desc";
 
-                        List<SapReturnToCustomerDetails> lines = HanaDataAccessLayer.ExecuteQuery<List<SapReturnToCustomerDetails>>(query);
+                        List<SapReturnToCustomerDetails> lines = await HanaDataAccessLayer.ExecuteQueryAsync<List<SapReturnToCustomerDetails>>(query);
 
                         foreach (var line in lines)
                         {
@@ -151,7 +155,7 @@ namespace IntelligentWmsIntegration.Services
 
                             queryList.Add(query);
                         }
-                        bool isCommitted = dac.ExecuteNonQueryWithTransaction(queryList);
+                        bool isCommitted = await dac.ExecuteNonQueryWithTransactionAsync(queryList);
 
                         if (isCommitted)
                         {
@@ -161,7 +165,7 @@ namespace IntelligentWmsIntegration.Services
                                   + "SET U_CTX_STTS = 'A'"
                                   + $"WHERE \"DocEntry\" = '{header.DocEntry}'";
 
-                            HanaDataAccessLayer.ExecuteNonQuery(query);
+                            await HanaDataAccessLayer.ExecuteNonQueryAsync(query);
                         }
                     }
                 }
@@ -171,6 +175,9 @@ namespace IntelligentWmsIntegration.Services
                 }
             }
             Logger.WriteLog($"Sales Return Request Export ends.");
+            stopwatch.Stop();
+
+            var timeElaspsed = stopwatch.Elapsed;
         }
     }
 }

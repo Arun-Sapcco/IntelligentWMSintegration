@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using Sap.Data.Hana;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
@@ -94,7 +95,7 @@ namespace IntelligentWmsIntegration.DAL
             }
         }
 
-        public void ExecuteNonQuery(string query, List<HanaParameter> parameters = null, bool isStoredProcedure = false)
+        public async Task<int> ExecuteCountQueryAsync(string query, List<HanaParameter> parameters = null, bool isStoredProcedure = false)
         {
             using (HanaConnection connection = new HanaConnection(_connectionString))
             {
@@ -108,8 +109,54 @@ namespace IntelligentWmsIntegration.DAL
                     {
                         command.Parameters.AddRange(parameters.ToArray());
                     }
+                    await connection.OpenAsync();
+
+                    object result = await command.ExecuteScalarAsync();
+                    int count = Convert.ToInt32(result);
+                    return count;
+                }
+            }
+        }
+
+
+        public int ExecuteNonQuery(string query, List<HanaParameter> parameters = null, bool isStoredProcedure = false)
+        {
+
+            using (HanaConnection connection = new HanaConnection(_connectionString))
+            {
+                using (HanaCommand command = new HanaCommand(query, connection))
+                {
+                    if (isStoredProcedure)
+                    {
+                        command.CommandType = CommandType.StoredProcedure;
+                    }
+                    if (parameters != null && parameters.Count > 0)
+                    {
+                        command.Parameters.AddRange(parameters.ToArray());
+                    }
                     connection.Open();
-                    command.ExecuteNonQuery();
+                    return command.ExecuteNonQuery();
+                }
+            }
+        }
+
+
+        public async Task<int> ExecuteNonQueryAsync(string query, List<HanaParameter> parameters = null, bool isStoredProcedure = false)
+        {
+            using (HanaConnection connection = new HanaConnection(_connectionString))
+            {
+                using (HanaCommand command = new HanaCommand(query, connection))
+                {
+                    if (isStoredProcedure)
+                    {
+                        command.CommandType = CommandType.StoredProcedure;
+                    }
+                    if (parameters != null && parameters.Count > 0)
+                    {
+                        command.Parameters.AddRange(parameters.ToArray());
+                    }
+                    await connection.OpenAsync();
+                    return await command.ExecuteNonQueryAsync();
                 }
             }
         }

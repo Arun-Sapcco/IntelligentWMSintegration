@@ -17,7 +17,7 @@ namespace IntelligentWmsIntegration.Services
         {
             string query = $@"select distinct CompanyCode FROM WMSStockTake";
             //string query = $@"select distinct CompanyCode FROM WMSStockTake WHERE CompanyCode = 'PU'";
-            string connectionString = ConfigurationManager.ConnectionStrings["SqlConnectionString"].ConnectionString;
+            string connectionString = AppConfig.WmsConnectionString;
             SqlDataAccessLayer dal = new SqlDataAccessLayer(connectionString);
 
             DataTable dataTable = dal.ExecuteQuery(query);
@@ -120,57 +120,57 @@ namespace IntelligentWmsIntegration.Services
 
 
             eligibleList.Where(x => x.ECommerce != 0 && companyCode == "PU").ToList().ForEach(x =>
-           {
-               int differenceQty = (int)(x.CountedQuantity - x.ECommerce);
+            {
+                int differenceQty = (int)(x.CountedQuantity - x.ECommerce);
 
-               if (differenceQty > 0)
-               {
-                   addedItemList.Add(
+                if (differenceQty > 0)
+                {
+                    addedItemList.Add(
+                        new WmsItem()
+                        {
+                            ItemCode = x.ItemCode,
+                            DocTime = x.DocTime,
+                            ECommerce = x.ECommerce,
+                            Warehouse = x.Warehouse,
+                            CountedQuantity = differenceQty
+                        });
+
+                    addedItemList.Add(new WmsItem()
+                    {
+                        ItemCode = x.ItemCode,
+                        DocTime = x.DocTime,
+                        ECommerce = x.ECommerce,
+                        Warehouse = "Web",
+                        CountedQuantity = x.ECommerce
+                    });
+                    eligibleList.Remove(x);
+
+                }
+                else if (differenceQty == 0)
+                {
+                    addedItemList.Add(
                        new WmsItem()
                        {
                            ItemCode = x.ItemCode,
                            DocTime = x.DocTime,
                            ECommerce = x.ECommerce,
                            Warehouse = x.Warehouse,
-                           CountedQuantity = differenceQty
+                           CountedQuantity = 0
                        });
 
-                   addedItemList.Add(new WmsItem()
-                   {
-                       ItemCode = x.ItemCode,
-                       DocTime = x.DocTime,
-                       ECommerce = x.ECommerce,
-                       Warehouse = "Web",
-                       CountedQuantity = x.ECommerce
-                   });
-                   eligibleList.Remove(x);
+                    addedItemList.Add(new WmsItem()
+                    {
+                        ItemCode = x.ItemCode,
+                        DocTime = x.DocTime,
+                        ECommerce = x.ECommerce,
+                        Warehouse = "Web",
+                        CountedQuantity = x.ECommerce
+                    });
+                    eligibleList.Remove(x);
+                }
+            });
 
-               }
-               else if (differenceQty == 0)
-               {
-                   addedItemList.Add(
-                      new WmsItem()
-                      {
-                          ItemCode = x.ItemCode,
-                          DocTime = x.DocTime,
-                          ECommerce = x.ECommerce,
-                          Warehouse = x.Warehouse,
-                          CountedQuantity = 0
-                      });
 
-                   addedItemList.Add(new WmsItem()
-                   {
-                       ItemCode = x.ItemCode,
-                       DocTime = x.DocTime,
-                       ECommerce = x.ECommerce,
-                       Warehouse = "Web",
-                       CountedQuantity = x.ECommerce
-                   });
-                   eligibleList.Remove(x);
-               }
-           });
-
-           
             var webItemList = addedItemList.Where(x => x.Warehouse == "Web").GroupBy(x => x.ItemCode).Select(y => new WmsItem()
             {
                 ItemCode = y.Key,
@@ -239,7 +239,7 @@ namespace IntelligentWmsIntegration.Services
         private List<string> GetDistinctWhsCode(string companyCode)
         {
             string query = $@"Select distinct Warehouse FROM WMSStockTake where CompanyCode = '{companyCode}'";
-            string connectionString = ConfigurationManager.ConnectionStrings["SqlConnectionString"].ConnectionString;
+            string connectionString = AppConfig.WmsConnectionString;
             SqlDataAccessLayer dal = new SqlDataAccessLayer(connectionString);
 
             DataTable dataTable = dal.ExecuteQuery(query);
@@ -270,7 +270,7 @@ namespace IntelligentWmsIntegration.Services
 
         private List<WmsItem> GetWmsData(string companyCode)
         {
-            string connectionString = ConfigurationManager.ConnectionStrings["SqlConnectionString"].ConnectionString;
+            string connectionString = AppConfig.WmsConnectionString;
             SqlDataAccessLayer dal = new SqlDataAccessLayer(connectionString);
 
             string query = $"SELECT [DocTime] ,[ItemCode] ,[CountedQuantity] ,[Warehouse] ,[ECommerce] FROM [dbo].[WMSStockTake] where companyCode = '{companyCode}'";
@@ -304,7 +304,8 @@ namespace IntelligentWmsIntegration.Services
             string database = GetCompanyCode(companyCode);
             string name = $"{database}_ConnectionString";
 
-            string connectionString = ConfigurationManager.ConnectionStrings[name].ConnectionString;
+
+            string connectionString = AppConfig.CompanyList.Where(x => x.CompanyDB == name).FirstOrDefault().HanaConnectionString;
             HanaDataAccessLayer dal = new HanaDataAccessLayer(connectionString);
 
             string query = $@"SELECT T0.""ItemCode"", T0.""WhsCode"", T0.""OnHand"" FROM OITW T0 INNER JOIN OITM T1 ON T0.""ItemCode"" = T1.""ItemCode"" WHERE T0.""ItemCode"" IN ({itemCodeList}) AND T1.""InvntItem"" = 'Y' Order By  T0.""ItemCode"", T0.""WhsCode""";
@@ -322,7 +323,7 @@ namespace IntelligentWmsIntegration.Services
             string database = GetCompanyCode(companyCode);
             string name = $"{database}_ConnectionString";
 
-            string connectionString = ConfigurationManager.ConnectionStrings[name].ConnectionString;
+            string connectionString = AppConfig.CompanyList.Where(x => x.CompanyDB == name).FirstOrDefault().HanaConnectionString;
             HanaDataAccessLayer dal = new HanaDataAccessLayer(connectionString);
 
 
